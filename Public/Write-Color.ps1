@@ -26,6 +26,12 @@ function Write-Color {
     If there are more strings than colors it will start from the beginning.
     Available colors are: Black, DarkBlue, DarkGreen, DarkCyan, DarkRed, DarkMagenta, DarkYellow, Gray, DarkGray, Blue, Green, Cyan, Red, Magenta, Yellow, White
 
+    .PARAMETER HorizontalCenter
+    Calculates the window width and inserts spaces to make the text center according to the present width of the powershell window. Default is false.
+
+    .PARAMETER VerticalCenter
+    Calculates the window height and inserts newlines to make the text center according to the present height of the powershell window. Default is false.
+
     .PARAMETER StartTab
     Number of tabs to add before text. Default is 0.
 
@@ -112,6 +118,8 @@ function Write-Color {
         [alias ('T')] [String[]]$Text,
         [alias ('C', 'ForegroundColor', 'FGC')] [ConsoleColor[]]$Color = [ConsoleColor]::White,
         [alias ('B', 'BGC')] [ConsoleColor[]]$BackGroundColor = $null,
+    	[bool] $VerticalCenter = $False,
+        [bool] $HorizontalCenter = $False,
         [alias ('Indent')][int] $StartTab = 0,
         [int] $LinesBefore = 0,
         [int] $LinesAfter = 0,
@@ -131,7 +139,15 @@ function Write-Color {
             Write-Error "Colors, BackGroundColors parameters count doesn't match. Terminated."
             return
         }
+        if ($VerticalCenter) { for ($i = 0; $i -lt ([Math]::Max(0, $Host.UI.RawUI.BufferSize.Height / 4)); $i++) { Write-Host -Object "`n" -NoNewline } } # Start writing output at the vertically center area of the screen
         if ($LinesBefore -ne 0) { for ($i = 0; $i -lt $LinesBefore; $i++) { Write-Host -Object "`n" -NoNewline } } # Add empty line before
+        if ($HorizontalCenter) {
+            $MessageLength = 0
+            foreach ($Value in $Text) {
+                $MessageLength += $Value.Length
+            }
+            Write-Host ("{0}" -f (' ' * ([Math]::Max(0, $Host.UI.RawUI.BufferSize.Width / 2) - [Math]::Floor($MessageLength / 2)))) -NoNewline 
+        }
         if ($StartTab -ne 0) { for ($i = 0; $i -lt $StartTab; $i++) { Write-Host -Object "`t" -NoNewline } }  # Add TABS before text
         if ($StartSpaces -ne 0) { for ($i = 0; $i -lt $StartSpaces; $i++) { Write-Host -Object ' ' -NoNewline } }  # Add SPACES before text
         if ($ShowTime) { Write-Host -Object "[$([datetime]::Now.ToString($DateTimeFormat))] " -NoNewline } # Add Time before output
